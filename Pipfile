@@ -1,0 +1,28 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+kaggle = "*"
+spacy = "*"
+pandas = "*"
+numpy = "*"
+scikit-learn = "*"
+black = "*"
+isort = "*"
+jupyterlab = "*"
+matplotlib = "*"
+seaborn = "*"
+loguru = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
+
+[pipenv]
+allow_prereleases = true
+
+[scripts]
+pipeline = "python3 -m commonlit.pipeline"
