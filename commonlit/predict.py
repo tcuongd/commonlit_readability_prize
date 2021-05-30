@@ -12,6 +12,7 @@ nlp = spacy.load("en_core_web_sm")
 
 OUTPUT_DIR = Path(".") / "output"
 
+
 def load_test_data() -> pd.DataFrame:
     df = load_data("test")
     return df[["id", "excerpt"]]
