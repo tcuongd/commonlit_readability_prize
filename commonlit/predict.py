@@ -1,16 +1,13 @@
-from pathlib import Path
+import pickle
 
+import numpy as np
 import pandas as pd
-import spacy
 from loguru import logger
 from sklearn.linear_model import LassoCV
 
-from .train import preprocess
+from .config import MODEL_OUTPUT, OUTPUT_DIR, PREDICT_OUTPUT
+from .features import process_texts
 from .utils import load_data
-
-nlp = spacy.load("en_core_web_sm")
-
-OUTPUT_DIR = Path(".") / "output"
 
 
 def load_test_data() -> pd.DataFrame:
@@ -18,11 +15,25 @@ def load_test_data() -> pd.DataFrame:
     return df[["id", "excerpt"]]
 
 
-def predict(m: LassoCV, df: pd.DataFrame, exclude_features: list[str]) -> pd.DataFrame:
-    X_test = preprocess(df)[[f for f in df.columns if f not in exclude_features]]
-    preds = m.predict(X_test)
+def predict(m: LassoCV, df: pd.DataFrame) -> pd.DataFrame:
+    features = process_texts(df["excerpt"].tolist())
+    preds = m.predict(np.array(features))
     preds_df = pd.DataFrame({"id": df["id"], "target": preds})
+    return preds_df
+
+
+def main():
+    df = load_test_data()
+    try:
+        with open(MODEL_OUTPUT, "rb") as f:
+            m = pickle.load(f)
+    except FileNotFoundError as exc:
+        raise Exception(f"Model binary not found in {MODEL_OUTPUT}") from exc
+    logger.info(f"Predicing on test data")
+    preds_df = predict(m, df)
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    foutput = OUTPUT_DIR / "submission.csv"
-    preds_df.to_csv(foutput.resolve(), index=False)
-    logger.info(f"Submission written to {foutput}")
+    logger.info(f"Writing submission to {PREDICT_OUTPUT}")
+    preds_df.to_csv(PREDICT_OUTPUT.resolve(), index=False)
+
+if __name__ == "__main__":
+    main()

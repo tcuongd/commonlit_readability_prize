@@ -8,12 +8,9 @@ from sklearn.linear_model import LassoCV
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 
+from .config import COEFS_OUTPUT, FEATURES_OUTPUT, MODEL_OUTPUT, OUTPUT_DIR
 from .features import process_texts
 from .utils import load_data
-
-MODEL_OUTPUT = Path(".") / "output" / "model.p"
-COEFS_OUTPUT = Path(".") / "output" / "model_coefficients.csv"
-FEATURES_OUTPUT = Path(".") / "output" / "train_features.csv"
 
 
 def load_train_data() -> pd.DataFrame:
@@ -47,6 +44,7 @@ def main():
     logger.info("Training model")
     m = train(features, df["target"].values)
 
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     logger.info(f"Dumping model to {MODEL_OUTPUT}")
     with open(MODEL_OUTPUT.resolve(), "wb") as f:
         pickle.dump(m, f, protocol=3)

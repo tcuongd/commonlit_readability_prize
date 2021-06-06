@@ -28,4 +28,5 @@ allow_prereleases = true
 get_nlp_models = "python3 -m spacy download en_core_web_lg"
 get_data = "python3 -m kaggle competitions download -c commonlitreadabilityprize && unzip commonlitreadabilityprize.zip -d data/"
 train = "python3 -m commonlit.train"
+predict = "python3 -m commonlit.predict"
 pipeline = "python3 -m commonlit.pipeline"
