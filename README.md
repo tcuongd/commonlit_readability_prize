@@ -14,9 +14,8 @@ From this directory:
 
 ```sh
 pipenv install
-pipenv run python3 -m spacy download en_core_web_sm
-pipenv run kaggle competitions download -c commonlitreadabilityprize
-unzip commonlitreadabilityprize.zip -d data/
+pipenv run get_nlp_models
+pipenv run get_data
 ```
 
 Run the full pipeline and product a sample submission file:
