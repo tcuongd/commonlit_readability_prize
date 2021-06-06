@@ -210,9 +210,3 @@ def process_texts(texts: list[str]) -> pd.DataFrame:
         axis=1,
     )
     return features
-
-def scale_features(df: pd.DataFrame) -> pd.DataFrame:
-    mus = df.mean(axis=0, skipna=True)
-    stds = df.std(axis=0, skipna=True)
-    scaled = (df - mus) / stds
-    return scaled
