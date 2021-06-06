@@ -7,8 +7,8 @@
 System requirements:
 
 * Python 3.9
-* `pipenv`
-* Kaggle API credentials set up (see https://github.com/Kaggle/kaggle-api)
+* [`pipenv`](https://pipenv.pypa.io/en/latest/)
+* [Kaggle API](https://github.com/Kaggle/kaggle-api) credentials set up
 
 From this directory:
 

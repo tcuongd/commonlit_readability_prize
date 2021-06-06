@@ -78,31 +78,20 @@ def extract_words_summary(doc: Doc) -> WordsSummary:
     distinct_words = np.unique([tok.lemma_ for tok in words_excl_stops])
     word_lengths = np.array([len(tok) for tok in words_excl_stops])
     pos = np.array([spacy.explain(tok.pos_) for tok in words_excl_stops])
-
-    num_words = len(word_lengths)
-    num_stop_words = np.sum(stops)
-    num_words_oov = len(words_oov)
-    num_distinct_words = len(distinct_words)
-    mean_word_length = np.mean(word_lengths)
-    p90_word_length = np.quantile(word_lengths, 0.9)
-    max_word_length = np.max(word_lengths)
-    perc_word_length_gt8 = np.sum(word_lengths > 8) / num_words
-    perc_word_length_gt10 = np.sum(word_lengths > 10) / num_words
-
     perc_pos = {}
     for part in ["adjective", "adverb", "interjection", "noun", "verb"]:
-        perc_pos[part] = np.sum(pos == part) / num_words
+        perc_pos[part] = np.sum(pos == part) / len(pos)
 
     return WordsSummary(
-        num_words=num_words,
-        num_stop_words=num_stop_words,
-        num_words_oov=num_words_oov,
-        num_distinct_words=num_distinct_words,
-        mean_word_length=mean_word_length,
-        p90_word_length=p90_word_length,
-        max_word_length=max_word_length,
-        perc_word_length_gt8=perc_word_length_gt8,
-        perc_word_length_gt10=perc_word_length_gt10,
+        num_words=len(word_lengths),
+        num_stop_words=np.sum(stops),
+        num_words_oov=len(words_oov),
+        num_distinct_words=len(distinct_words),
+        mean_word_length=np.mean(word_lengths),
+        p90_word_length=np.quantile(word_lengths, 0.9),
+        max_word_length=np.max(word_lengths),
+        perc_word_length_gt8=np.sum(word_lengths > 8) / len(word_lengths),
+        perc_word_length_gt10=np.sum(word_lengths > 10) / len(word_lengths),
         perc_adjective=perc_pos["adjective"],
         perc_adverb=perc_pos["adverb"],
         perc_interjection=perc_pos["interjection"],
