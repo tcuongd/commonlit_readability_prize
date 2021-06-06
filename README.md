@@ -18,7 +18,7 @@ pipenv run get_nlp_models
 pipenv run get_data
 ```
 
-Run the full pipeline and product a sample submission file:
+Run the full pipeline and produce a sample submission file:
 
 ```sh
 pipenv run pipeline
