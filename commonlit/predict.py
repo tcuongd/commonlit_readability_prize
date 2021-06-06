@@ -6,7 +6,7 @@ from loguru import logger
 from sklearn.linear_model import LassoCV
 
 from .config import MODEL_OUTPUT, OUTPUT_DIR, PREDICT_OUTPUT
-from .features import process_texts
+from .features import process_texts, scale_features
 from .utils import load_data
 
 
@@ -17,7 +17,7 @@ def load_test_data() -> pd.DataFrame:
 
 def predict(m: LassoCV, df: pd.DataFrame) -> pd.DataFrame:
     features = process_texts(df["excerpt"].tolist())
-    preds = m.predict(np.array(features))
+    preds = m.predict(np.array(scale_features(features)))
     preds_df = pd.DataFrame({"id": df["id"], "target": preds})
     return preds_df
 

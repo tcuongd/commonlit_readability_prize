@@ -18,7 +18,7 @@ class WordsSummary:
     p90_word_length: float
     max_word_length: float
     perc_word_length_gt8: float
-    perc_word_length_gt12: float
+    perc_word_length_gt10: float
     perc_adjective: float
     perc_adverb: float
     perc_interjection: float
@@ -32,19 +32,32 @@ class SentencesSummary:
     mean_sentence_length: float
     p90_sentence_length: float
     max_sentence_length: float
-    perc_sentence_length_gt_15: float
     perc_sentence_length_gt_30: float
+    perc_sentence_length_gt_45: float
+
+
+@dataclass(frozen=True)
+class EntitiesSummary:
+    num_entities: int
+    num_distinct_ent_labels: int
 
 
 def extract_tensor(doc: Doc) -> np.array:
-    tensor_flat = np.nanmean(doc.tensor, axis=0)
-    return tensor_flat
+    return np.nanmean(doc.tensor, axis=0)
+
+
+def extract_std_tensor(doc: Doc) -> np.array:
+    return np.nanstd(doc.tensor, axis=0)
 
 
 def extract_token_embeddings(doc: Doc) -> np.array:
     all_embeddings = np.vstack([tok.vector for tok in doc])
-    embeddings_flat = np.nanmean(all_embeddings, axis=0)
-    return embeddings_flat
+    return np.nanmean(all_embeddings, axis=0)
+
+
+def extract_std_token_embeddings(doc: Doc) -> np.array:
+    all_embeddings = np.vstack([tok.vector for tok in doc])
+    return np.nanstd(all_embeddings, axis=0)
 
 
 def is_word_strict(tok: Token) -> bool:
@@ -74,7 +87,7 @@ def extract_words_summary(doc: Doc) -> WordsSummary:
     p90_word_length = np.quantile(word_lengths, 0.9)
     max_word_length = np.max(word_lengths)
     perc_word_length_gt8 = np.sum(word_lengths > 8) / num_words
-    perc_word_length_gt12 = np.sum(word_lengths > 12) / num_words
+    perc_word_length_gt10 = np.sum(word_lengths > 10) / num_words
 
     perc_pos = {}
     for part in ["adjective", "adverb", "interjection", "noun", "verb"]:
@@ -89,7 +102,7 @@ def extract_words_summary(doc: Doc) -> WordsSummary:
         p90_word_length=p90_word_length,
         max_word_length=max_word_length,
         perc_word_length_gt8=perc_word_length_gt8,
-        perc_word_length_gt12=perc_word_length_gt12,
+        perc_word_length_gt10=perc_word_length_gt10,
         perc_adjective=perc_pos["adjective"],
         perc_adverb=perc_pos["adverb"],
         perc_interjection=perc_pos["interjection"],
@@ -107,23 +120,61 @@ def extract_sentences_summary(doc: Doc) -> SentencesSummary:
         mean_sentence_length=np.mean(sent_lengths),
         p90_sentence_length=np.quantile(sent_lengths, 0.9),
         max_sentence_length=np.max(sent_lengths),
-        perc_sentence_length_gt_15=np.sum(sent_lengths > 15) / num_sentences,
         perc_sentence_length_gt_30=np.sum(sent_lengths > 30) / num_sentences,
+        perc_sentence_length_gt_45=np.sum(sent_lengths > 45) / num_sentences,
+    )
+
+
+def extract_entities_summary(doc: Doc) -> EntitiesSummary:
+    ents = [ent for ent in doc.ents]
+    labels = [ent.label_ for ent in ents]
+    return EntitiesSummary(
+        num_entities=len(ents), num_distinct_ent_labels=np.unique(labels).shape[0]
     )
 
 
 def tensors_df(docs: list[Doc]) -> pd.DataFrame:
     values = np.vstack([extract_tensor(doc) for doc in docs])
-    colnames = [f"tensor_{i}" for i in range(values.shape[1])]
+    colnames = [f"tensors_{i}" for i in range(values.shape[1])]
     idx = [i for i in range(values.shape[0])]
-    return pd.DataFrame(values, columns=colnames, index=idx)
+    df = pd.DataFrame(values, columns=colnames, index=idx)
+    df["tensors_mean"] = df[colnames].mean(axis=1)
+    df["tensors_std"] = df[colnames].std(axis=1)
+    df["tensors_l2"] = np.sqrt(np.sum(np.power(df[colnames].values, 2), axis=1))
+    return df
+
+
+def std_tensors_df(docs: list[Doc]) -> pd.DataFrame:
+    values = np.vstack([extract_std_tensor(doc) for doc in docs])
+    colnames = [f"std_tensors_{i}" for i in range(values.shape[1])]
+    idx = [i for i in range(values.shape[0])]
+    df = pd.DataFrame(values, columns=colnames, index=idx)
+    df["std_tensors_mean"] = df[colnames].mean(axis=1)
+    df["std_tensors_std"] = df[colnames].std(axis=1)
+    df["std_tensors_l2"] = np.sqrt(np.sum(np.power(df[colnames].values, 2), axis=1))
+    return df
 
 
 def token_embeddings_df(docs: list[Doc]) -> pd.DataFrame:
     values = np.vstack([extract_token_embeddings(doc) for doc in docs])
     colnames = [f"token_embeddings_{i}" for i in range(values.shape[1])]
     idx = [i for i in range(values.shape[0])]
-    return pd.DataFrame(values, columns=colnames, index=idx)
+    df = pd.DataFrame(values, columns=colnames, index=idx)
+    df["token_embeddings_mean"] = df[colnames].mean(axis=1)
+    df["token_embeddings_std"] = df[colnames].std(axis=1)
+    df["token_embeddings_l2"] = np.sqrt(np.sum(np.power(df[colnames].values, 2), axis=1))
+    return df
+
+
+def std_token_embeddings_df(docs: list[Doc]) -> pd.DataFrame:
+    values = np.vstack([extract_std_token_embeddings(doc) for doc in docs])
+    colnames = [f"std_token_embeddings_{i}" for i in range(values.shape[1])]
+    idx = [i for i in range(values.shape[0])]
+    df = pd.DataFrame(values, columns=colnames, index=idx)
+    df["std_token_embeddings_mean"] = df[colnames].mean(axis=1)
+    df["std_token_embeddings_std"] = df[colnames].std(axis=1)
+    df["std_token_embeddings_l2"] = np.sqrt(np.sum(np.power(df[colnames].values, 2), axis=1))
+    return df
 
 
 def words_summary_df(docs: list[Doc]) -> pd.DataFrame:
@@ -138,11 +189,30 @@ def sentences_summary_df(docs: list[Doc]) -> pd.DataFrame:
     return pd.DataFrame(values, index=idx)
 
 
+def entities_summary_df(docs: list[Doc]) -> pd.DataFrame:
+    values = [extract_entities_summary(doc) for doc in docs]
+    idx = [i for i in range(len(values))]
+    return pd.DataFrame(values, index=idx)
+
+
 def process_texts(texts: list[str]) -> pd.DataFrame:
-    docs = [nlp(text) for text in texts]
-    tensors = tensors_df(docs)
-    token_embeddings = token_embeddings_df(docs)
-    words_summary = words_summary_df(docs)
-    sentences_summary = sentences_summary_df(docs)
-    features = pd.concat([tensors, token_embeddings, words_summary, sentences_summary], axis=1)
+    docs = list(nlp.pipe(texts))
+    features = pd.concat(
+        [
+            tensors_df(docs),
+            std_tensors_df(docs),
+            token_embeddings_df(docs),
+            std_token_embeddings_df(docs),
+            words_summary_df(docs),
+            sentences_summary_df(docs),
+            entities_summary_df(docs)
+        ],
+        axis=1,
+    )
     return features
+
+def scale_features(df: pd.DataFrame) -> pd.DataFrame:
+    mus = df.mean(axis=0, skipna=True)
+    stds = df.std(axis=0, skipna=True)
+    scaled = (df - mus) / stds
+    return scaled
