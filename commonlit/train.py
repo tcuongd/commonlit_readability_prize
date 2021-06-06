@@ -1,4 +1,3 @@
-from multiprocessing import Pipe
 import pickle
 
 import numpy as np
@@ -7,8 +6,8 @@ from loguru import logger
 from sklearn.linear_model import LassoCV
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
 from .config import COEFS_OUTPUT, FEATURES_OUTPUT, MODEL_OUTPUT, OUTPUT_DIR
 from .features import process_texts
@@ -48,7 +47,7 @@ def train(
         cv=10,
         n_jobs=5,
     )
-    pipe = Pipeline([('scaler', StandardScaler()), ('lasso', lasso)])
+    pipe = Pipeline([("scaler", StandardScaler()), ("lasso", lasso)])
     pipe.fit(X_train_resampled, y_train_resampled)
 
     oos_preds = pipe.predict(X_test)
@@ -76,7 +75,7 @@ def main():
         pickle.dump(pipe, f, protocol=3)
 
     logger.info(f"Dumping model coefficients to {COEFS_OUTPUT}")
-    coefs = model_coefficients(pipe.named_steps['lasso'], features.columns)
+    coefs = model_coefficients(pipe.named_steps["lasso"], features.columns)
     coefs.to_csv(COEFS_OUTPUT.resolve(), index=False)
 
     logger.info(f"Dumping features table to {FEATURES_OUTPUT}")

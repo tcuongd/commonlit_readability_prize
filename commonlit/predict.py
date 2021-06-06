@@ -25,7 +25,7 @@ def predict(pipe: Pipeline, df: pd.DataFrame) -> pd.DataFrame:
 def main():
     df = load_test_data()
     try:
-        with open(MODEL_OUTPUT, "rb") as f:
+        with open(MODEL_OUTPUT.resolve(), "rb") as f:
             pipe = pickle.load(f)
     except FileNotFoundError as exc:
         raise Exception(f"Model binary not found in {MODEL_OUTPUT}") from exc
@@ -34,6 +34,7 @@ def main():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     logger.info(f"Writing submission to {PREDICT_OUTPUT}")
     preds_df.to_csv(PREDICT_OUTPUT.resolve(), index=False)
+
 
 if __name__ == "__main__":
     main()

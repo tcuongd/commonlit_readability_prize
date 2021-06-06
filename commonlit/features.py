@@ -205,7 +205,7 @@ def process_texts(texts: list[str]) -> pd.DataFrame:
             std_token_embeddings_df(docs),
             words_summary_df(docs),
             sentences_summary_df(docs),
-            entities_summary_df(docs)
+            entities_summary_df(docs),
         ],
         axis=1,
     )
